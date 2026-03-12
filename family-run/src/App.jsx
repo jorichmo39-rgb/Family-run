@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
-
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+import PlansTab from "./Plans";
 
 const AVATAR_OPTIONS = ["🏃","🏃‍♀️","🧑‍🦱","👧","👦","🧑","👩","👨","🧒","👶"];
 const COLOR_OPTIONS  = ["#FF6B35","#4ECDC4","#FFE66D","#C9A4F0","#A8E6CF","#FF8FA3","#7EC8E3","#FFB347"];
@@ -13,12 +12,6 @@ const JOURNAL_PROMPTS = [
   "Rate your mental toughness today (1–10) and why.",
   "What motivated you to get out the door today?",
   "How is your energy level compared to last week?",
-];
-const WORKOUT_PLANS = [
-  { name: "Couch to 5K",        weeks: 9,  level: "Beginner",    emoji: "🌱", desc: "Run your first 5K from scratch with walk/run intervals" },
-  { name: "5K Speed Builder",   weeks: 6,  level: "Intermediate", emoji: "⚡", desc: "Break your personal record with tempo runs & intervals" },
-  { name: "10K Foundation",     weeks: 10, level: "Intermediate", emoji: "🔥", desc: "Build endurance to comfortably race 10K" },
-  { name: "Half Marathon Prep", weeks: 14, level: "Advanced",     emoji: "🏅", desc: "Full structured training for your half marathon goal" },
 ];
 const NUTRITION = [
   { category: "Pre-Run",       emoji: "⚡", color: "#FF6B35", timing: "1–2 hours before",  foods: ["Banana with almond butter","Oatmeal with berries","Whole grain toast + honey","Greek yogurt + granola"],                         tip: "Focus on easily digestible carbs. Avoid high fat or high fiber foods right before." },
@@ -38,8 +31,6 @@ function getReadiness(sleep, soreness, energy) {
   return "Rest";
 }
 
-// ─── AUTH SCREEN ──────────────────────────────────────────────────────────────
-
 function AuthScreen({ onAuth }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
@@ -52,8 +43,7 @@ function AuthScreen({ onAuth }) {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     if (mode === "signup") {
       const { data, error: e } = await supabase.auth.signUp({ email, password });
       if (e) { setError(e.message); setLoading(false); return; }
@@ -86,10 +76,7 @@ function AuthScreen({ onAuth }) {
         </div>
         {mode === "signup" && (
           <>
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 11, opacity: 0.55, marginBottom: 6 }}>YOUR NAME</div>
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Josh" style={inp} />
-            </div>
+            <div style={{ marginBottom: 14 }}><div style={{ fontSize: 11, opacity: 0.55, marginBottom: 6 }}>YOUR NAME</div><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Josh" style={inp} /></div>
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 11, opacity: 0.55, marginBottom: 6 }}>PICK AN AVATAR</div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -102,20 +89,11 @@ function AuthScreen({ onAuth }) {
                 {COLOR_OPTIONS.map(c => <button key={c} onClick={() => setColor(c)} style={{ width: 32, height: 32, borderRadius: "50%", background: c, border: `3px solid ${color === c ? "#fff" : "transparent"}`, cursor: "pointer" }} />)}
               </div>
             </div>
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 11, opacity: 0.55, marginBottom: 6 }}>YOUR GOAL</div>
-              <input value={goal} onChange={e => setGoal(e.target.value)} placeholder="e.g. Run a 5K, Half Marathon..." style={inp} />
-            </div>
+            <div style={{ marginBottom: 14 }}><div style={{ fontSize: 11, opacity: 0.55, marginBottom: 6 }}>YOUR GOAL</div><input value={goal} onChange={e => setGoal(e.target.value)} placeholder="e.g. Run a 5K, Half Marathon..." style={inp} /></div>
           </>
         )}
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, opacity: 0.55, marginBottom: 6 }}>EMAIL</div>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" style={inp} />
-        </div>
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, opacity: 0.55, marginBottom: 6 }}>PASSWORD</div>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={inp} />
-        </div>
+        <div style={{ marginBottom: 14 }}><div style={{ fontSize: 11, opacity: 0.55, marginBottom: 6 }}>EMAIL</div><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" style={inp} /></div>
+        <div style={{ marginBottom: 20 }}><div style={{ fontSize: 11, opacity: 0.55, marginBottom: 6 }}>PASSWORD</div><input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={inp} /></div>
         {error && <div style={{ color: "#FF6B35", fontSize: 13, marginBottom: 14, background: "rgba(255,107,53,0.1)", borderRadius: 8, padding: "8px 12px" }}>{error}</div>}
         <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", background: "#FF6B35", border: "none", borderRadius: 12, padding: "14px", color: "#000", fontWeight: "bold", fontSize: 16, cursor: "pointer", fontFamily: "Georgia, serif" }}>
           {loading ? "Please wait..." : mode === "login" ? "Sign In →" : "Create Account →"}
@@ -124,8 +102,6 @@ function AuthScreen({ onAuth }) {
     </div>
   );
 }
-
-// ─── WEATHER WIDGET ──────────────────────────────────────────────────────────
 
 function WeatherWidget() {
   const w = { temp: 48, condition: "Partly Cloudy", wind: 9, humidity: 62, uv: 3, icon: "⛅" };
@@ -163,8 +139,6 @@ function WeatherWidget() {
     </div>
   );
 }
-
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -323,10 +297,10 @@ export default function App() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
               {[
-                { label: "Total miles",      value: totalMiles.toFixed(1),                                  emoji: "🗺️" },
-                { label: "Runs logged",       value: runs.length,                                            emoji: "📊" },
-                { label: "Latest weight",     value: latestMetric ? `${latestMetric.weight} lbs` : "—",    emoji: "⚖️" },
-                { label: "Today's readiness", value: latestRecovery ? latestRecovery.readiness : "—",       emoji: "🛌" },
+                { label: "Total miles",      value: totalMiles.toFixed(1),                               emoji: "🗺️" },
+                { label: "Runs logged",       value: runs.length,                                         emoji: "📊" },
+                { label: "Latest weight",     value: latestMetric ? `${latestMetric.weight} lbs` : "—",  emoji: "⚖️" },
+                { label: "Today's readiness", value: latestRecovery ? latestRecovery.readiness : "—",    emoji: "🛌" },
               ].map((s, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: 13 }}>
                   <div style={{ fontSize: 20 }}>{s.emoji}</div>
@@ -361,11 +335,12 @@ export default function App() {
             {showLogRun && (
               <div style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${color}44`, borderRadius: 16, padding: 18, marginBottom: 18 }}>
                 <div style={{ fontSize: 15, fontWeight: "bold", marginBottom: 14 }}>Log a Run 🏃</div>
-                {[{ label: "DATE", el: <input type="date" value={newRun.date} onChange={e => setNewRun({ ...newRun, date: e.target.value })} style={inp} /> },
-                  { label: "RUN TYPE", el: <select value={newRun.type} onChange={e => setNewRun({ ...newRun, type: e.target.value })} style={inp}>{RUN_TYPES.map(t => <option key={t}>{t}</option>)}</select> },
+                {[
+                  { label: "DATE",             el: <input type="date" value={newRun.date} onChange={e => setNewRun({ ...newRun, date: e.target.value })} style={inp} /> },
+                  { label: "RUN TYPE",         el: <select value={newRun.type} onChange={e => setNewRun({ ...newRun, type: e.target.value })} style={inp}>{RUN_TYPES.map(t => <option key={t}>{t}</option>)}</select> },
                   { label: "DISTANCE (miles)", el: <input type="number" placeholder="e.g. 3.1" value={newRun.miles} onChange={e => setNewRun({ ...newRun, miles: e.target.value })} style={inp} /> },
-                  { label: "TIME", el: <input placeholder="e.g. 28:45" value={newRun.time} onChange={e => setNewRun({ ...newRun, time: e.target.value })} style={inp} /> },
-                  { label: "NOTES", el: <input placeholder="How did it feel?" value={newRun.notes} onChange={e => setNewRun({ ...newRun, notes: e.target.value })} style={inp} /> },
+                  { label: "TIME",             el: <input placeholder="e.g. 28:45" value={newRun.time} onChange={e => setNewRun({ ...newRun, time: e.target.value })} style={inp} /> },
+                  { label: "NOTES",            el: <input placeholder="How did it feel?" value={newRun.notes} onChange={e => setNewRun({ ...newRun, notes: e.target.value })} style={inp} /> },
                 ].map((f, i) => <div key={i} style={{ marginBottom: 10 }}><div style={{ fontSize: 11, opacity: 0.55, marginBottom: 4 }}>{f.label}</div>{f.el}</div>)}
                 <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
                   <button onClick={() => setShowLogRun(false)} style={{ flex: 1, background: "rgba(255,255,255,0.07)", border: "none", borderRadius: 10, padding: 11, color: "#f0ece4", cursor: "pointer" }}>Cancel</button>
@@ -436,10 +411,7 @@ export default function App() {
                     {readinessIcon[getReadiness(newRecovery.sleep, newRecovery.soreness, newRecovery.energy)]} {getReadiness(newRecovery.sleep, newRecovery.soreness, newRecovery.energy)}
                   </div>
                 </div>
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 11, opacity: 0.55, marginBottom: 4 }}>NOTES</div>
-                  <input value={newRecovery.notes} onChange={e => setNewRecovery({ ...newRecovery, notes: e.target.value })} placeholder="How do you feel?" style={inp} />
-                </div>
+                <div style={{ marginBottom: 14 }}><div style={{ fontSize: 11, opacity: 0.55, marginBottom: 4 }}>NOTES</div><input value={newRecovery.notes} onChange={e => setNewRecovery({ ...newRecovery, notes: e.target.value })} placeholder="How do you feel?" style={inp} /></div>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button onClick={() => setShowAddRecovery(false)} style={{ flex: 1, background: "rgba(255,255,255,0.07)", border: "none", borderRadius: 10, padding: 11, color: "#f0ece4", cursor: "pointer" }}>Cancel</button>
                   <button onClick={saveRecovery} style={{ flex: 2, background: color, border: "none", borderRadius: 10, padding: 11, color: "#000", fontWeight: "bold", cursor: "pointer" }}>Save ✓</button>
@@ -479,10 +451,7 @@ export default function App() {
               <div style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${color}44`, borderRadius: 16, padding: 16, marginBottom: 20 }}>
                 <div style={{ fontSize: 15, fontWeight: "bold", marginBottom: 14 }}>Log Metrics</div>
                 {[{ label: "Weight (lbs)", key: "weight", placeholder: "e.g. 178" }, { label: "Resting Heart Rate (bpm)", key: "rhr", placeholder: "e.g. 52" }, { label: "Notes", key: "notes", placeholder: "How are you feeling?" }].map(f => (
-                  <div key={f.key} style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, opacity: 0.55, marginBottom: 4 }}>{f.label}</div>
-                    <input placeholder={f.placeholder} value={newMetric[f.key]} onChange={e => setNewMetric({ ...newMetric, [f.key]: e.target.value })} style={inp} />
-                  </div>
+                  <div key={f.key} style={{ marginBottom: 10 }}><div style={{ fontSize: 11, opacity: 0.55, marginBottom: 4 }}>{f.label}</div><input placeholder={f.placeholder} value={newMetric[f.key]} onChange={e => setNewMetric({ ...newMetric, [f.key]: e.target.value })} style={inp} /></div>
                 ))}
                 <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
                   <button onClick={() => setShowAddMetric(false)} style={{ flex: 1, background: "rgba(255,255,255,0.07)", border: "none", borderRadius: 10, padding: 11, color: "#f0ece4", cursor: "pointer" }}>Cancel</button>
@@ -633,28 +602,9 @@ export default function App() {
           </div>
         )}
 
-        {/* PLANS */}
+        {/* PLANS — now uses the PlansTab component */}
         {activeTab === "plans" && (
-          <div>
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 11, letterSpacing: 3, opacity: 0.5, textTransform: "uppercase" }}>Training Plans</div>
-              <div style={{ fontSize: 20, fontWeight: "bold" }}>Find Your Program</div>
-            </div>
-            {WORKOUT_PLANS.map((plan, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 17, marginBottom: 13 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 9 }}>
-                  <div style={{ fontSize: 28 }}>{plan.emoji}</div>
-                  <div style={{ background: plan.level === "Beginner" ? "rgba(168,230,207,0.16)" : plan.level === "Intermediate" ? "rgba(255,230,109,0.16)" : "rgba(255,107,53,0.16)", color: plan.level === "Beginner" ? "#A8E6CF" : plan.level === "Intermediate" ? "#FFE66D" : "#FF6B35", borderRadius: 8, padding: "3px 9px", fontSize: 10, fontWeight: "bold" }}>{plan.level}</div>
-                </div>
-                <div style={{ fontWeight: "bold", fontSize: 16, marginBottom: 4 }}>{plan.name}</div>
-                <div style={{ fontSize: 13, opacity: 0.62, marginBottom: 11 }}>{plan.desc}</div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontSize: 12, opacity: 0.42 }}>📅 {plan.weeks} weeks</div>
-                  <button style={{ background: color, border: "none", borderRadius: 10, padding: "7px 14px", color: "#000", fontWeight: "bold", cursor: "pointer", fontSize: 12 }}>Start Plan →</button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <PlansTab color={color} userId={user.id} onPlanActivated={loadRuns} />
         )}
 
         {/* PROFILE */}
