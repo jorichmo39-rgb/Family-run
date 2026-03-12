@@ -451,6 +451,7 @@ export default function App() {
   const [showAddRecovery,setShowAddRecovery]=useState(false);
   const [showEditProfile,setShowEditProfile]=useState(false);
   const [showCompletedRuns,setShowCompletedRuns]=useState(false);
+  const [confirmCancel,setConfirmCancel]=useState(false);
   const [metricView,setMetricView]=useState("weight");
   const [completingId,setCompletingId]=useState(null);
   const [completeForm,setCompleteForm]=useState({time:"",notes:""});
@@ -498,6 +499,11 @@ export default function App() {
   }
   async function saveProfile(){await supabase.from("profiles").update(editProfile).eq("id",user.id);setProfile({...profile,...editProfile});setShowEditProfile(false);}
   async function signOut(){await supabase.auth.signOut();}
+  async function cancelPlan(){
+    const planRunIds=runs.filter(r=>!r.completed&&r.notes&&r.notes.includes("[")).map(r=>r.id);
+    if(planRunIds.length) await supabase.from("runs").delete().in("id",planRunIds);
+    setConfirmCancel(false); loadRuns();
+  }
 
   if(loading)return<div style={{fontFamily:"Georgia, serif",background:"#080c14",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:"#f0ece4"}}><div style={{textAlign:"center"}}><div style={{fontSize:40,marginBottom:16}}>🏃</div><div style={{fontSize:14,opacity:0.5}}>Loading...</div></div></div>;
   if(!user||!profile)return<AuthScreen onAuth={u=>{setUser(u);loadProfile(u.id);}}/>;
@@ -673,6 +679,24 @@ export default function App() {
               <div><div style={{fontSize:11,letterSpacing:3,opacity:0.5,textTransform:"uppercase"}}>Training</div><div style={{fontSize:20,fontWeight:"bold"}}>Your Schedule</div></div>
               <button onClick={()=>setShowLogRun(!showLogRun)} style={{background:color,border:"none",borderRadius:12,padding:"9px 15px",color:"#000",fontWeight:"bold",cursor:"pointer",fontSize:13}}>+ Add Run</button>
             </div>
+
+            {/* Cancel active plan banner */}
+            {hasActivePlan&&!confirmCancel&&(
+              <div style={{background:"rgba(255,107,53,0.08)",border:"1px solid rgba(255,107,53,0.22)",borderRadius:12,padding:"11px 14px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{fontSize:12,opacity:0.7}}>📋 Active plan running</div>
+                <button onClick={()=>setConfirmCancel(true)} style={{fontSize:12,background:"rgba(255,107,53,0.15)",border:"1px solid rgba(255,107,53,0.3)",borderRadius:8,padding:"5px 11px",color:"#FF6B35",cursor:"pointer"}}>Cancel Plan</button>
+              </div>
+            )}
+            {confirmCancel&&(
+              <div style={{background:"rgba(255,107,53,0.12)",border:"1px solid rgba(255,107,53,0.4)",borderRadius:12,padding:"14px",marginBottom:16}}>
+                <div style={{fontWeight:"bold",fontSize:13,color:"#FF6B35",marginBottom:5}}>⚠️ Cancel your active plan?</div>
+                <div style={{fontSize:12,opacity:0.7,marginBottom:12}}>This will remove all remaining scheduled runs. Your completed runs will stay in your history.</div>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={()=>setConfirmCancel(false)} style={{flex:1,background:"rgba(255,255,255,0.07)",border:"none",borderRadius:9,padding:"9px",color:"#f0ece4",cursor:"pointer",fontSize:13}}>Keep Plan</button>
+                  <button onClick={cancelPlan} style={{flex:2,background:"#FF6B35",border:"none",borderRadius:9,padding:"9px",color:"#000",fontWeight:"bold",cursor:"pointer",fontSize:13}}>Yes, Cancel Plan</button>
+                </div>
+              </div>
+            )}
 
             {showLogRun&&(
               <div style={{background:"rgba(255,255,255,0.05)",border:`1px solid ${color}44`,borderRadius:16,padding:18,marginBottom:18}}>
