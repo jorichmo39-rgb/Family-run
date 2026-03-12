@@ -557,7 +557,7 @@ export default function App() {
               <div style={{fontWeight:"bold",fontSize:14}}>{run.type}</div>
               {isToday&&<div style={{background:`${color}25`,color,borderRadius:6,padding:"2px 7px",fontSize:10,fontWeight:"bold"}}>TODAY</div>}
             </div>
-            <div style={{fontSize:11,opacity:0.42,marginTop:2}}>{run.date}</div>
+            <div style={{fontSize:11,opacity:0.42,marginTop:2}}>{isToday?"Today":new Date(run.date+"T00:00:00").toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}</div>
             {run.notes&&<div style={{fontSize:11,opacity:0.48,marginTop:4,lineHeight:1.4}}>{run.notes.replace(/\[.*?\]\s*/g,"")}</div>}
           </div>
           <div style={{textAlign:"right",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:5}}>
@@ -725,7 +725,7 @@ export default function App() {
                     <div style={{display:"flex",justifyContent:"space-between"}}>
                       <div>
                         <div style={{fontWeight:"bold",fontSize:13}}>{run.type}</div>
-                        <div style={{fontSize:11,opacity:0.4,marginTop:2}}>{run.date}</div>
+                        <div style={{fontSize:11,opacity:0.4,marginTop:2}}>{new Date(run.date+"T00:00:00").toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}</div>
                       </div>
                       <div style={{color:typeColor[run.type]||color,fontWeight:"bold",opacity:0.7}}>{run.miles} mi</div>
                     </div>
@@ -749,7 +749,7 @@ export default function App() {
                           <span style={{fontSize:13,fontWeight:"bold"}}>{run.type}</span>
                           <span style={{fontSize:10,color:"#A8E6CF"}}>✓ Done</span>
                         </div>
-                        <div style={{fontSize:11,opacity:0.38,marginTop:2}}>{run.date}</div>
+                        <div style={{fontSize:11,opacity:0.38,marginTop:2}}>{new Date(run.date+"T00:00:00").toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}</div>
                         {run.notes&&<div style={{fontSize:11,opacity:0.45,marginTop:3,fontStyle:"italic"}}>{run.notes.replace(/\[.*?\]\s*/g,"")}</div>}
                       </div>
                       <div style={{textAlign:"right"}}>
