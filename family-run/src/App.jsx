@@ -82,24 +82,30 @@ const NUTRITION_CARDS = [
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 function AuthScreen({ onAuth }) {
   const [mode,setMode]=useState("login");
-  const [email,setEmail]=useState("");
-  const [password,setPassword]=useState("");
   const [name,setName]=useState("");
+  const [pin,setPin]=useState("");
   const [avatar,setAvatar]=useState("🏃");
   const [color,setColor]=useState("#FF6B35");
   const [goal,setGoal]=useState("");
   const [error,setError]=useState("");
   const [loading,setLoading]=useState(false);
 
+  // Derive a fake email from name so Supabase auth works invisibly
+  function fakeEmail(n){ return `${n.toLowerCase().replace(/\s+/g,".")}.${pin}@familyrun.app`; }
+
   async function handleSubmit() {
     setError(""); setLoading(true);
-    if (mode==="signup") {
+    if(!name.trim()){setError("Please enter your name.");setLoading(false);return;}
+    if(pin.length!==4||isNaN(pin)){setError("PIN must be 4 digits.");setLoading(false);return;}
+    const email=fakeEmail(name);
+    const password=`pin-${pin}-${name.toLowerCase().replace(/\s+/g,"")}`;
+    if(mode==="signup"){
       const {data,error:e}=await supabase.auth.signUp({email,password});
-      if (e){setError(e.message);setLoading(false);return;}
-      if (data.user){await supabase.from("profiles").insert({id:data.user.id,name,avatar,color,goal});onAuth(data.user);}
+      if(e){setError(e.message);setLoading(false);return;}
+      if(data.user){await supabase.from("profiles").insert({id:data.user.id,name:name.trim(),avatar,color,goal});onAuth(data.user);}
     } else {
       const {data,error:e}=await supabase.auth.signInWithPassword({email,password});
-      if (e){setError(e.message);setLoading(false);return;}
+      if(e){setError("Name or PIN incorrect. Try again.");setLoading(false);return;}
       onAuth(data.user);
     }
     setLoading(false);
@@ -114,14 +120,21 @@ function AuthScreen({ onAuth }) {
       <div style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:24}}>
         <div style={{display:"flex",marginBottom:24,background:"rgba(255,255,255,0.06)",borderRadius:12,padding:4}}>
           {["login","signup"].map(m=>(
-            <button key={m} onClick={()=>setMode(m)} style={{flex:1,padding:"10px",border:"none",borderRadius:10,cursor:"pointer",background:mode===m?"#FF6B35":"transparent",color:mode===m?"#000":"#f0ece4",fontWeight:mode===m?"bold":"normal",fontSize:14,fontFamily:"Georgia, serif"}}>
+            <button key={m} onClick={()=>{setMode(m);setError("");}} style={{flex:1,padding:"10px",border:"none",borderRadius:10,cursor:"pointer",background:mode===m?"#FF6B35":"transparent",color:mode===m?"#000":"#f0ece4",fontWeight:mode===m?"bold":"normal",fontSize:14,fontFamily:"Georgia, serif"}}>
               {m==="login"?"Sign In":"Create Account"}
             </button>
           ))}
         </div>
+
+        {/* Name */}
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:11,opacity:0.55,marginBottom:6}}>YOUR NAME</div>
+          <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Josh" style={inp}/>
+        </div>
+
+        {/* Signup extras */}
         {mode==="signup"&&(
           <>
-            <div style={{marginBottom:14}}><div style={{fontSize:11,opacity:0.55,marginBottom:6}}>YOUR NAME</div><input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Josh" style={inp}/></div>
             <div style={{marginBottom:14}}>
               <div style={{fontSize:11,opacity:0.55,marginBottom:6}}>PICK AN AVATAR</div>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -134,11 +147,19 @@ function AuthScreen({ onAuth }) {
                 {COLOR_OPTIONS.map(c=><button key={c} onClick={()=>setColor(c)} style={{width:32,height:32,borderRadius:"50%",background:c,border:`3px solid ${color===c?"#fff":"transparent"}`,cursor:"pointer"}}/>)}
               </div>
             </div>
-            <div style={{marginBottom:14}}><div style={{fontSize:11,opacity:0.55,marginBottom:6}}>YOUR GOAL</div><input value={goal} onChange={e=>setGoal(e.target.value)} placeholder="e.g. Run a 5K, Half Marathon..." style={inp}/></div>
+            <div style={{marginBottom:14}}>
+              <div style={{fontSize:11,opacity:0.55,marginBottom:6}}>YOUR GOAL</div>
+              <input value={goal} onChange={e=>setGoal(e.target.value)} placeholder="e.g. Run a 5K, Half Marathon..." style={inp}/>
+            </div>
           </>
         )}
-        <div style={{marginBottom:14}}><div style={{fontSize:11,opacity:0.55,marginBottom:6}}>EMAIL</div><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@email.com" style={inp}/></div>
-        <div style={{marginBottom:20}}><div style={{fontSize:11,opacity:0.55,marginBottom:6}}>PASSWORD</div><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" style={inp}/></div>
+
+        {/* PIN */}
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:11,opacity:0.55,marginBottom:6}}>4-DIGIT PIN</div>
+          <input type="tel" inputMode="numeric" maxLength={4} value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,"").slice(0,4))} placeholder="e.g. 1234" style={{...inp,letterSpacing:8,fontSize:22,textAlign:"center"}}/>
+        </div>
+
         {error&&<div style={{color:"#FF6B35",fontSize:13,marginBottom:14,background:"rgba(255,107,53,0.1)",borderRadius:8,padding:"8px 12px"}}>{error}</div>}
         <button onClick={handleSubmit} disabled={loading} style={{width:"100%",background:"#FF6B35",border:"none",borderRadius:12,padding:"14px",color:"#000",fontWeight:"bold",fontSize:16,cursor:"pointer",fontFamily:"Georgia, serif"}}>
           {loading?"Please wait...":mode==="login"?"Sign In →":"Create Account →"}
